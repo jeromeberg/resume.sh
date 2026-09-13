@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="$name$">
+  <title>$name$ - $title$</title>
+$for(css)$
+  <link rel="stylesheet" href="$css$">
+$endfor$
+</head>
+<body>
+  <header class="resume-header">
+    <h1>$name$</h1>
+    <p class="professional-title">$title$</p>
+    <div class="contact">
+      <p class="contact-row">
+$if(email)$
+      <a href="mailto:$email$">$email$</a>
+$endif$
+$if(phone)$
+      <span class="separator">|</span>
+      <a href="tel:$phone$">$phone$</a>
+$endif$
+$if(location)$
+      <span class="separator">|</span>
+      <span>$location$</span>
+$endif$
+      </p>
+$if(links)$
+      <p class="contact-row contact-links">
+$for(links)$
+      <a href="$links.url$">$links.label$</a>
+$sep$
+      <span class="separator">|</span>
+$endfor$
+      </p>
+$endif$
+    </div>
+  </header>
+  <main>
+$body$
+  </main>
+</body>
+</html>
