@@ -1,6 +1,6 @@
-# resume-md
+# resume.sh
 
-Generate a PDF resume from a markdown file.
+Generate an ATS-friendly PDF resume from a markdown file.
 
 ## Requirements
 
@@ -21,7 +21,13 @@ brew install pandoc weasyprint
 
 The generated file is `out/resume.pdf`.
 
-Contact links are defined in the `resume.md` metadata:
+**Use a different input file (Markdown):**
+
+```sh
+./resume.sh --input input.md
+```
+
+**Contact links are defined in the metadata:**
 
 ```yaml
 links:
@@ -31,20 +37,22 @@ links:
     url: https://github.com/name
 ```
 
-Override the title from the Markdown metadata:
+**Override the title from the Markdown metadata:**
 
 ```sh
 ./resume.sh --title "Full-stack developer"
 ```
 
-Select a theme from `themes/`:
+**Select a theme from `themes/`:**
 
 ```sh
-./resume.sh --theme orange
+./resume.sh --theme compact
 ```
 
-Write the PDF to a different file:
+Default theme is `orange`.
+
+**Write the PDF to a different file:**
 
 ```sh
-./resume.sh --output custom.pdf
+./resume.sh --output output.pdf
 ```

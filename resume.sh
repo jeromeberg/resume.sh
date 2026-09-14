@@ -3,7 +3,7 @@
 set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-resume_path="$dir/resume.md"
+input_path="$dir/resume.md"
 themes_dir="$dir/themes"
 output_dir="$dir/out"
 
@@ -16,7 +16,8 @@ print_help() {
 Usage: ./resume.sh [options]
 
 Options:
-  --title TITLE    Override title from resume.md.
+  --input FILE     Override input markdown file (default: resume.md).
+  --title TITLE    Override title from input metadata.
   --theme THEME    Use theme from themes/ (default: orange).
   --output NAME    Override output filename (default: resume.pdf).
   -h, --help       Show this help message.
@@ -25,6 +26,15 @@ EOF
 
 while (($#)); do
   case "$1" in
+    --input)
+      [[ $# -ge 2 ]] || { echo "error: --input requires a value" >&2; exit 2; }
+      input_path="$2"
+      shift 2
+      ;;
+    --input=*)
+      input_path="${1#*=}"
+      shift
+      ;;
     --title)
       [[ $# -ge 2 ]] || { echo "error: --title requires a value" >&2; exit 2; }
       title="$2"
@@ -64,6 +74,13 @@ while (($#)); do
   esac
 done
 
+[[ -n "$input_path" ]] || {
+  echo "error: --input requires a value" >&2
+  exit 2
+}
+if [[ "$input_path" != /* ]]; then
+  input_path="$PWD/$input_path"
+fi
 [[ "$theme" =~ ^[A-Za-z0-9_-]+$ ]] || {
   echo "error: invalid theme name: $theme" >&2
   exit 2
@@ -83,7 +100,7 @@ theme_dir="$themes_dir/$theme"
 template_path="$theme_dir/template.html"
 stylesheet_path="$theme_dir/style.css"
 
-[[ -f "$resume_path" ]] || { echo "error: resume.md not found" >&2; exit 1; }
+[[ -f "$input_path" ]] || { echo "error: input markdown file not found: $input_path" >&2; exit 1; }
 [[ -f "$template_path" && -f "$stylesheet_path" ]] || {
   echo "error: theme '$theme' not found in $themes_dir" >&2
   exit 1
@@ -103,7 +120,7 @@ html_path="$(mktemp "${TMPDIR:-/tmp}/resume.XXXXXX.html")"
 trap 'rm -f "$html_path"' EXIT
 
 pandoc_args=(
-  "$resume_path"
+  "$input_path"
   --from=markdown
   --to=html5
   --standalone
