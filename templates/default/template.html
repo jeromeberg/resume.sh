@@ -8,6 +8,9 @@
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
+$if(accent_color)$
+  <style>:root { --accent: $accent_color$; }</style>
+$endif$
 </head>
 <body>
   <header class="resume-header">

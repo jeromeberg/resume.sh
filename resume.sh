@@ -4,22 +4,24 @@ set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 input_path="$dir/resume.md"
-themes_dir="$dir/themes"
+templates_dir="$dir/templates"
 output_dir="$dir/out"
 
 title=""
-theme="orange"
-output_name="resume.pdf"
+template="default"
+color="orange"
+output="resume.pdf"
 
 print_help() {
   cat <<'EOF'
 Usage: ./resume.sh [options]
 
 Options:
-  --input FILE     Override input markdown file (default: resume.md).
+  --input FILE     Override input file (default: resume.md).
   --title TITLE    Override title from input metadata.
-  --theme THEME    Use theme from themes/ (default: orange).
-  --output NAME    Override output filename (default: resume.pdf).
+  --template NAME  Use template from templates/ (default: default).
+  --color COLOR    Set accent color (default: orange).
+  --output NAME    Override output file (default: resume.pdf).
   -h, --help       Show this help message.
 EOF
 }
@@ -44,22 +46,31 @@ while (($#)); do
       title="${1#*=}"
       shift
       ;;
-    --theme)
-      [[ $# -ge 2 ]] || { echo "error: --theme requires a value" >&2; exit 2; }
-      theme="$2"
+    --template)
+      [[ $# -ge 2 ]] || { echo "error: --template requires a value" >&2; exit 2; }
+      template="$2"
       shift 2
       ;;
-    --theme=*)
-      theme="${1#*=}"
+    --template=*)
+      template="${1#*=}"
+      shift
+      ;;
+    --color)
+      [[ $# -ge 2 ]] || { echo "error: --color requires a value" >&2; exit 2; }
+      color="$2"
+      shift 2
+      ;;
+    --color=*)
+      color="${1#*=}"
       shift
       ;;
     --output)
       [[ $# -ge 2 ]] || { echo "error: --output requires a value" >&2; exit 2; }
-      output_name="$2"
+      output="$2"
       shift 2
       ;;
     --output=*)
-      output_name="${1#*=}"
+      output="${1#*=}"
       shift
       ;;
     -h|--help)
@@ -81,28 +92,43 @@ done
 if [[ "$input_path" != /* ]]; then
   input_path="$PWD/$input_path"
 fi
-[[ "$theme" =~ ^[A-Za-z0-9_-]+$ ]] || {
-  echo "error: invalid theme name: $theme" >&2
+[[ "$template" =~ ^[A-Za-z0-9_-]+$ ]] || {
+  echo "error: invalid template name: $template" >&2
   exit 2
 }
-[[ -n "$output_name" ]] || {
+case "$color" in
+  orange) accent_color="#b45309" ;;
+  blue) accent_color="#1d4ed8" ;;
+  green) accent_color="#15803d" ;;
+  yellow) accent_color="#a16207" ;;
+  pink) accent_color="#be185d" ;;
+  *)
+    if [[ "$color" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
+      accent_color="$color"
+    else
+      echo "error: invalid color '$color'; use orange, blue, green, yellow, pink, or #RRGGBB" >&2
+      exit 2
+    fi
+    ;;
+esac
+[[ -n "$output" ]] || {
   echo "error: --output requires a value" >&2
   exit 2
 }
-[[ "$output_name" != */* && "$output_name" != "." && "$output_name" != ".." ]] || {
+[[ "$output" != */* && "$output" != "." && "$output" != ".." ]] || {
   echo "error: --output must be a filename, not a path" >&2
   exit 2
 }
 
-output_path="$output_dir/$output_name"
+output_path="$output_dir/$output"
 
-theme_dir="$themes_dir/$theme"
-template_path="$theme_dir/template.html"
-stylesheet_path="$theme_dir/style.css"
+template_dir="$templates_dir/$template"
+template_path="$template_dir/template.html"
+stylesheet_path="$template_dir/style.css"
 
 [[ -f "$input_path" ]] || { echo "error: input markdown file not found: $input_path" >&2; exit 1; }
 [[ -f "$template_path" && -f "$stylesheet_path" ]] || {
-  echo "error: theme '$theme' not found in $themes_dir" >&2
+  echo "error: template '$template' not found in $templates_dir" >&2
   exit 1
 }
 
@@ -127,6 +153,7 @@ pandoc_args=(
   --template="$template_path"
   --css="$stylesheet_path"
   --embed-resources
+  "--variable=accent_color:$accent_color"
   --output="$html_path"
 )
 
