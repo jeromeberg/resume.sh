@@ -16,33 +16,36 @@ brew install pandoc weasyprint
 ## Usage
 
 ```sh
-./resume.sh
+./resume.sh <input.md> [options]
 ```
 
-The generated file is `out/resume.pdf`.
+The markdown input file is required as the first argument. See `example.md` to create yours.
 
-Use a different input file (Markdown):
+The resume is generated in `out/resume.pdf`.
 
-```sh
-./resume.sh --input input.md
-```
+### Output
+
+The output file is created in `out/` directory.
 
 Write the PDF to a different file:
 
 ```sh
-./resume.sh --output output.pdf
+# relative path (in out/)
+./resume.sh resume.md -o output.pdf
+
+# absolute path
+./resume.sh resume.md -o ~/Documents/resume.pdf
 ```
 
 ### Options
 
-| Option         | Description                    |
-|----------------|--------------------------------|
-| `--input`      | Set input file (`resume.md`)   |
-| `--output`     | Set output file (`resume.pdf`) |
-| `--template`   | Set template (`default`)       |
-| `--color`      | Set accent color (`orange`)    |
-| `--title`      | Override title from metadata   |
-| `--help`, `-h` | List options                   |
+| Option           | Description             |
+|------------------|-------------------------|
+| `--output`, `-o` | Set output filepath     |
+| `--template`     | Set template            |
+| `--color`        | Set accent color        |
+| `--title`        | Override metadata title |
+| `--help`, `-h`   | Show usage and options  |
 
 ## Customization
 
@@ -61,7 +64,7 @@ links:
 Override the title from the Markdown metadata:
 
 ```sh
-./resume.sh --title "Full-stack developer"
+./resume.sh resume.md --title "Full-stack developer"
 ```
 
 ### Template
@@ -69,28 +72,32 @@ Override the title from the Markdown metadata:
 Select a template from `templates/`:
 
 ```sh
-./resume.sh --template compact
+./resume.sh resume.md --template compact
 ```
 
 List of templates:
 - `default`: default template.
-- `compact`: default template with contact links to the right side.
+- `compact`: contact links to the right side.
 
 ### Color
+
+Default accent color: `orange`.
 
 Set the accent color:
 
 ```sh
-./resume.sh --color blue
-./resume.sh --color "#b45309"
+# predefined color name
+./resume.sh resume.md --color blue
+
+# hex color code (#rrggbb)
+./resume.sh resume.md --color "#b45309"
 ```
 
 Predefined colors:
 
-- `orange`: `#b45309` (default)
-- `blue`: `#1d4ed8`
-- `green`: `#15803d`
-- `yellow`: `#a16207`
-- `pink`: `#be185d`
-
-Custom colors must use the six-digit `#RRGGBB` format.
+| Name     | Value     |
+|----------|-----------|
+| `orange` | #b45309 |
+| `blue`   | #1d4ed8 |
+| `green`  | #15803d |
+| `pink`   | #be185d |

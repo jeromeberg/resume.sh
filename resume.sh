@@ -3,7 +3,6 @@
 set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-input_path="$dir/resume.md"
 templates_dir="$dir/templates"
 output_dir="$dir/out"
 
@@ -14,29 +13,39 @@ output="resume.pdf"
 
 print_help() {
   cat <<'EOF'
-Usage: ./resume.sh [options]
+Usage: ./resume.sh <input.md> [options]
+
+Generate an ATS-friendly PDF resume from a markdown file.
+https://github.com/jeromeberg/resume.sh
 
 Options:
-  --input FILE     Override input file (default: resume.md).
-  --title TITLE    Override title from input metadata.
-  --template NAME  Use template from templates/ (default: default).
-  --color COLOR    Set accent color (default: orange).
-  --output NAME    Override output file (default: resume.pdf).
-  -h, --help       Show this help message.
+  --output, -o PATH  Set output filepath / name.
+  --template NAME    Use template from templates/.
+  --color COLOR      Set accent color.
+  --title TITLE      Override metadata title.
+  --help, -h         Show this help message.
 EOF
 }
 
+if (($# == 0)); then
+  echo "error: input markdown file is required as the first argument" >&2
+  print_help >&2
+  exit 2
+fi
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  print_help
+  exit 0
+fi
+if [[ "$1" == -* ]]; then
+  echo "error: input markdown file must be the first argument" >&2
+  print_help >&2
+  exit 2
+fi
+input_path="$1"
+shift
+
 while (($#)); do
   case "$1" in
-    --input)
-      [[ $# -ge 2 ]] || { echo "error: --input requires a value" >&2; exit 2; }
-      input_path="$2"
-      shift 2
-      ;;
-    --input=*)
-      input_path="${1#*=}"
-      shift
-      ;;
     --title)
       [[ $# -ge 2 ]] || { echo "error: --title requires a value" >&2; exit 2; }
       title="$2"
@@ -64,12 +73,12 @@ while (($#)); do
       color="${1#*=}"
       shift
       ;;
-    --output)
-      [[ $# -ge 2 ]] || { echo "error: --output requires a value" >&2; exit 2; }
+    -o|--output)
+      [[ $# -ge 2 ]] || { echo "error: $1 requires a value" >&2; exit 2; }
       output="$2"
       shift 2
       ;;
-    --output=*)
+    -o=*|--output=*)
       output="${1#*=}"
       shift
       ;;
@@ -86,7 +95,7 @@ while (($#)); do
 done
 
 [[ -n "$input_path" ]] || {
-  echo "error: --input requires a value" >&2
+  echo "error: input markdown file is required as the first argument" >&2
   exit 2
 }
 if [[ "$input_path" != /* ]]; then
@@ -100,13 +109,12 @@ case "$color" in
   orange) accent_color="#b45309" ;;
   blue) accent_color="#1d4ed8" ;;
   green) accent_color="#15803d" ;;
-  yellow) accent_color="#a16207" ;;
   pink) accent_color="#be185d" ;;
   *)
     if [[ "$color" =~ ^#[0-9A-Fa-f]{6}$ ]]; then
       accent_color="$color"
     else
-      echo "error: invalid color '$color'; use orange, blue, green, yellow, pink, or #RRGGBB" >&2
+      echo "error: invalid color '$color'; use predefined color name or hex color code (#RRGGBB)" >&2
       exit 2
     fi
     ;;
@@ -115,12 +123,11 @@ esac
   echo "error: --output requires a value" >&2
   exit 2
 }
-[[ "$output" != */* && "$output" != "." && "$output" != ".." ]] || {
-  echo "error: --output must be a filename, not a path" >&2
-  exit 2
-}
-
-output_path="$output_dir/$output"
+if [[ "$output" == /* ]]; then
+  output_path="$output"
+else
+  output_path="$output_dir/$output"
+fi
 
 template_dir="$templates_dir/$template"
 template_path="$template_dir/template.html"
@@ -141,7 +148,7 @@ command -v weasyprint >/dev/null 2>&1 || {
   exit 1
 }
 
-mkdir -p "$output_dir"
+mkdir -p "$(dirname "$output_path")"
 html_path="$(mktemp "${TMPDIR:-/tmp}/resume.XXXXXX.html")"
 trap 'rm -f "$html_path"' EXIT
 
